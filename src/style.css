@@ -234,6 +234,33 @@ input[type=range]::-moz-range-thumb {
 }
 .dropzone.over { border-color: var(--accent); background: rgba(255,45,85,.05); }
 
+/* 内嵌预览/iframe 里麦克风被权限策略拦掉时的提示条 */
+.framed-tip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 0 0 14px;
+  padding: 10px 14px;
+  border: 1px solid rgba(255, 176, 32, .35);
+  border-radius: 8px;
+  background: rgba(255, 176, 32, .08);
+  color: #ffcf7a;
+  font-size: 13px;
+}
+.framed-tip b { color: #ffb020; }
+.framed-tip a {
+  margin-left: auto;
+  color: #fff;
+  background: var(--accent);
+  border-radius: 6px;
+  padding: 5px 12px;
+  text-decoration: none;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.framed-tip a:hover { background: #ff4d6d; }
+
 .rec-btn {
   width: 92px; height: 92px;
   border-radius: 50%;

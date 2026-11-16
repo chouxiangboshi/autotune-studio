@@ -393,8 +393,17 @@
         },
       });
     } catch (e) {
-      toast('拿不到麦克风权限。用 file:// 打开时可能被拒，请改用「选择音频文件」。');
-      status('麦克风不可用', 'err');
+      if (isFramed()) {
+        showFramedTip();
+        toast('预览窗口不允许用麦克风，点上方黄条在独立窗口打开');
+      } else if (e && e.name === 'NotAllowedError') {
+        toast('麦克风权限被拒绝：点地址栏左侧的锁/图标，把麦克风改成「允许」，然后刷新');
+      } else if (e && e.name === 'NotFoundError') {
+        toast('没检测到麦克风设备，检查系统声音设置里是否插好麦克风');
+      } else {
+        toast('拿不到麦克风：' + (e && e.message ? e.message : e));
+      }
+      status('麦克风不可用 · 可改用「选择音频文件」', 'err');
       return;
     }
 
@@ -1028,6 +1037,26 @@
   }
 
   // ---------------------------------------------------------- 启动
+  // ---------------------------------------------------------- 环境探测
+  /** 是否被嵌在 iframe / 预览面板里（这类容器默认没有麦克风权限策略） */
+  function isFramed() {
+    try { return window.self !== window.top; } catch (e) { return true; }
+  }
+
+  const ONLINE_URL = 'https://chouxiangboshi.github.io/autotune-studio/';
+
+  function showFramedTip() {
+    if (document.querySelector('.framed-tip')) return;
+    const bar = document.createElement('div');
+    bar.className = 'framed-tip';
+    bar.innerHTML =
+      '<span><b>麦克风不可用</b>：现在是在聊天窗口的内嵌预览里，浏览器不允许这里开麦。' +
+      '录音请点右边按钮；只处理现成音频（拖入文件）则不受影响。</span>' +
+      '<a href="' + ONLINE_URL + '" target="_blank" rel="noopener">在独立窗口打开 →</a>';
+    const main = document.querySelector('main');
+    main.parentNode.insertBefore(bar, main);
+  }
+
   function boot() {
     buildPresets();
     buildKeys();
@@ -1036,7 +1065,10 @@
     bindStage();
     $('scaleV').textContent = D.NOTE_NAMES[S.key] + ' ' + (SCALE_CN[S.scale] || S.scale).split('（')[0];
 
-    if (!window.isSecureContext) {
+    if (isFramed()) {
+      showFramedTip();
+      status('内嵌预览不授权麦克风 · 拖入音频文件可用');
+    } else if (!window.isSecureContext) {
       status('当前不是安全上下文，麦克风可能不可用；文件处理不受影响', 'err');
     } else {
       status('就绪 · 点红点录音，或拖入音频文件');

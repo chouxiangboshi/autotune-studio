@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 const EDGE = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
-const PAGE = 'file:///D:/workbuddy-workspace/autotune/%E6%8C%82%E7%94%B5Studio.html';
+const PAGE = 'file:///D:/workbuddy-workspace/autotune/guadian-studio.html';
 const PORT = 9334;
 const OUT = process.argv[2] || 'D:/workbuddy-workspace/autotune/preview.png';
 
