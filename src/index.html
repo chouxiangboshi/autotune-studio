@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>挂电 Studio · 说唱人声自动修音</title>
+<style>/*__CSS__*/</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">挂电<span>STUDIO</span></div>
+  <div class="sub">说唱人声 · 实时自动修音</div>
+  <div class="spacer"></div>
+  <div class="badge" id="srBadge">—</div>
+</header>
+
+<div class="presets" id="presets"></div>
+
+<main>
+  <aside class="panel">
+    <section>
+      <h3>调性</h3>
+      <div class="keys" id="keys"></div>
+      <select id="scale"></select>
+      <div class="field">
+        <label>八度</label>
+        <select id="octave">
+          <option value="-1">-1（低八度）</option>
+          <option value="0" selected>0（原调）</option>
+          <option value="1">+1（高八度）</option>
+        </select>
+      </div>
+    </section>
+
+    <section>
+      <h3>修音</h3>
+      <div class="slider-row">
+        <span>力度</span>
+        <input type="range" id="amount" min="0" max="100" value="100">
+        <b id="amountV">100%</b>
+      </div>
+      <div class="slider-row">
+        <span>吸附速度</span>
+        <input type="range" id="retune" min="0" max="300" value="0">
+        <b id="retuneV">瞬跳</b>
+      </div>
+    </section>
+
+    <section>
+      <h3>效果</h3>
+      <div class="slider-row">
+        <span>失真</span>
+        <input type="range" id="drive" min="0" max="100" value="12">
+        <b id="driveV">12</b>
+      </div>
+      <div class="slider-row">
+        <span>双层</span>
+        <input type="range" id="chorus" min="0" max="100" value="18">
+        <b id="chorusV">18</b>
+      </div>
+      <div class="slider-row">
+        <span>回声</span>
+        <input type="range" id="echo" min="0" max="100" value="14">
+        <b id="echoV">14</b>
+      </div>
+      <div class="slider-row">
+        <span>混响</span>
+        <input type="range" id="reverb" min="0" max="100" value="20">
+        <b id="reverbV">20</b>
+      </div>
+    </section>
+  </aside>
+
+  <section class="stage" id="stage">
+    <div class="dropzone" id="dropzone">
+      <button class="rec-btn" id="recBtn" title="开始录音"><span>●</span></button>
+      <div class="hint" id="hint">点红点开始录音 · 或把音频文件拖到这里</div>
+      <button class="ghost" id="pickBtn">选择音频文件</button>
+      <input type="file" id="fileInput" accept="audio/*" hidden>
+    </div>
+
+    <div class="viz" id="viz" hidden>
+      <canvas id="wave"></canvas>
+      <canvas id="pitch"></canvas>
+      <div class="notebar">
+        <span><span class="k">时长</span> <span class="v" id="durV">—</span></span>
+        <span><span class="k">唱到</span> <span class="v" id="noteV">—</span></span>
+        <span><span class="k">参考音阶</span> <span class="v" id="scaleV">—</span></span>
+      </div>
+    </div>
+
+    <div class="transport" id="transport" hidden>
+      <button class="primary" id="playBtn">▶ 播放</button>
+      <div class="ab" id="ab">
+        <button data-ab="wet" class="on">挂电</button>
+        <button data-ab="dry">原声</button>
+      </div>
+      <div class="toggles">
+        <label><input type="checkbox" id="lowOpt"> 低音优化</label>
+        <button class="ghost" id="dlBtn">⬇ 下载 WAV</button>
+        <button class="ghost" id="resetBtn">重来</button>
+      </div>
+    </div>
+
+    <div class="overlay" id="overlay" hidden>
+      <div style="text-align:center">
+        <div class="spin"></div>
+        <div id="overlayText">处理中…</div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="status" id="status"><span class="dot"></span><span id="statusText">就绪</span></div>
+<div class="toast" id="toast"></div>
+
+<script id="dsp-src" type="text/plain">/*__DSP__*/</script>
+<script>/*__APP__*/</script>
+</body>
+</html>
