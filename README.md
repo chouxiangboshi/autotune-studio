@@ -1,6 +1,6 @@
 # 挂电 Studio
 
-说唱人声实时自动修音。**双击 `挂电Studio.html` 就能用，不用装任何东西。**
+说唱人声实时自动修音。**双击 `guadian-studio.html` 就能用，不用装任何东西。**
 
 **在线版（手机/电脑都能开，麦克风可直接用）：**
 ### 👉 https://chouxiangboshi.github.io/autotune-studio/
@@ -33,7 +33,7 @@
 
 ### 路子 A：录一段（最常用）
 
-1. 双击打开 `挂电Studio.html`，或直接用装好的桌面版
+1. 双击打开 `guadian-studio.html`，或直接用装好的桌面版
 2. **戴上耳机**，不然麦克风会啸叫
 3. 点红色圆点开始录音 → 唱 → 再点一次停止
 4. 自动处理完，点「▶ 播放」听，点「⬇ 下载 WAV」拿走
@@ -143,7 +143,7 @@ test/             三层测试
 ```
 
 ```bash
-node build.mjs                              # 生成 挂电Studio.html
+node build.mjs                              # 生成 guadian-studio.html
 node test/test_dsp.cjs                      # 算法数值精度
 node test/test_worklet.cjs                  # 模拟 AudioWorklet 流式链路
 node test/browser_test.mjs                  # Edge 无头真浏览器端到端

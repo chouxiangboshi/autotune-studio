@@ -16,8 +16,8 @@ html = html.split('/*__CSS__*/').join(css);
 html = html.split('/*__DSP__*/').join(dsp);
 html = html.split('/*__APP__*/').join(app);
 
-// 主产物：中文名，双击即用
-const out = path.join(root, '挂电Studio.html');
+// 主产物：ASCII 文件名，避免被本地预览器改写（中文名会被注入 data-page-node-id）
+const out = path.join(root, 'guadian-studio.html');
 fs.writeFileSync(out, html, 'utf8');
 
 // 副本：index.html，给 GitHub Pages 用根路径直接访问
