@@ -18,3 +18,12 @@ dist/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# 本地授权临时文件
+.poll.sh
+.device.json
+.token.json
+
+# 推送临时文件
+.repo.json
+.resp.json
