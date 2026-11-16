@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-page-node-id="fzOJMPnjLutOaQ0eksX5YZ">
-<head data-page-node-id="xpN4LJbBqjkisFkqlACnth">
-<meta charset="utf-8" data-page-node-id="0izSTJwUPnFIvAbyKRjQON">
-<meta name="viewport" content="width=device-width, initial-scale=1" data-page-node-id="JsbKLdEU5CnojN4kM7DEVF">
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>挂电 Studio · 说唱人声自动修音</title>
 <style>:root {
   --bg: #07080a;
@@ -390,114 +390,114 @@ input[type=checkbox] { accent-color: var(--accent); cursor: pointer; }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(-4px); }
 </style>
 </head>
-<body data-page-node-id="6OcNn8u6R2zlHQePMHwxZW">
+<body>
 
-<header data-page-node-id="OPWaSsdSWcrDPceBpF5YH7">
-  <div class="logo" data-page-node-id="JARoSvCbebP706mVgAsYxf">挂电<span data-page-node-id="MaZIc1SmFtMrE6pxRW5vIu">STUDIO</span></div>
-  <div class="sub" data-page-node-id="KBAzp9NZYo0SoA5HYbDupa">说唱人声 · 实时自动修音</div>
-  <div class="spacer" data-page-node-id="8bGCL3AhF3hWjYp8PQL8Kp"></div>
-  <div class="badge" id="srBadge" data-page-node-id="O6JFpWMF7weQ9I6ZY5xEP1">—</div>
+<header>
+  <div class="logo">挂电<span>STUDIO</span></div>
+  <div class="sub">说唱人声 · 实时自动修音</div>
+  <div class="spacer"></div>
+  <div class="badge" id="srBadge">—</div>
 </header>
 
-<div class="presets" id="presets" data-page-node-id="mc7UDExQqhN3wUyGtoMxkj"></div>
+<div class="presets" id="presets"></div>
 
-<main data-page-node-id="IbGnAOyhiIb75lVCHLEkd7">
-  <aside class="panel" data-page-node-id="W7aFYV3yPVNGJlNjg3IuJX">
-    <section data-page-node-id="tQ45bdVyhVOzV9rPe8vswM">
-      <h3 data-page-node-id="5sJefoIvOfFd41jG4IgKtT">调性</h3>
-      <div class="keys" id="keys" data-page-node-id="kbM8tAlUUDwMuaCrOYH4di"></div>
-      <select id="scale" data-page-node-id="jix65nvDYeiTA3rVzAedma"></select>
-      <div class="field" data-page-node-id="Iql8EsoPcmkIku3LkvsLFC">
-        <label data-page-node-id="UKpQly1D2OLflItZ6NYeW1">八度</label>
-        <select id="octave" data-page-node-id="ErRKFrzjeNQxswuLHEggZY">
-          <option value="-1" data-page-node-id="h6FJHddi5SkNvhwtAJucvn">-1（低八度）</option>
-          <option value="0" selected data-page-node-id="gcWW5KXTmB3qswdLk1tFro">0（原调）</option>
-          <option value="1" data-page-node-id="8LcwMsyfKeDKktoyMAHun7">+1（高八度）</option>
+<main>
+  <aside class="panel">
+    <section>
+      <h3>调性</h3>
+      <div class="keys" id="keys"></div>
+      <select id="scale"></select>
+      <div class="field">
+        <label>八度</label>
+        <select id="octave">
+          <option value="-1">-1（低八度）</option>
+          <option value="0" selected>0（原调）</option>
+          <option value="1">+1（高八度）</option>
         </select>
       </div>
     </section>
 
-    <section data-page-node-id="ibz1bVkFKcZyU7NJpDQMRm">
-      <h3 data-page-node-id="Ca7VSS5bTviBTs1GaAgPR3">修音</h3>
-      <div class="slider-row" data-page-node-id="3aY79DINSGA9XIsX6r0tGE">
-        <span data-page-node-id="UaFxmWk5hR2pGYGoMuvIlI">力度</span>
-        <input type="range" id="amount" min="0" max="100" value="100" data-page-node-id="kMnRd3PDrcIEjwRZ08ZUi2">
-        <b id="amountV" data-page-node-id="XyiGaUH9abCcQh8jqFwKdk">100%</b>
+    <section>
+      <h3>修音</h3>
+      <div class="slider-row">
+        <span>力度</span>
+        <input type="range" id="amount" min="0" max="100" value="100">
+        <b id="amountV">100%</b>
       </div>
-      <div class="slider-row" data-page-node-id="lCENhzTWZbGS0RZz62zx82">
-        <span data-page-node-id="dZ0AOQllCMKd73xtS8IImd">吸附速度</span>
-        <input type="range" id="retune" min="0" max="300" value="0" data-page-node-id="o1CCyzQeJ3zN0XfvuZ0lyC">
-        <b id="retuneV" data-page-node-id="jyCeznUnbmMHzogcZYzXr3">瞬跳</b>
+      <div class="slider-row">
+        <span>吸附速度</span>
+        <input type="range" id="retune" min="0" max="300" value="0">
+        <b id="retuneV">瞬跳</b>
       </div>
     </section>
 
-    <section data-page-node-id="4bBDx9CJp8FO18IL8Zvg6U">
-      <h3 data-page-node-id="oPQkp1U7Zf6BvF6jiO0InB">效果</h3>
-      <div class="slider-row" data-page-node-id="Htl7sHVWxeflGddC6n1qcd">
-        <span data-page-node-id="YnfEh4ELWh5jvvEuttHHBM">失真</span>
-        <input type="range" id="drive" min="0" max="100" value="12" data-page-node-id="opnl8qbLdR9yeknSYPLxP7">
-        <b id="driveV" data-page-node-id="mBd99WG8M3DI9J5mcMVCBQ">12</b>
+    <section>
+      <h3>效果</h3>
+      <div class="slider-row">
+        <span>失真</span>
+        <input type="range" id="drive" min="0" max="100" value="12">
+        <b id="driveV">12</b>
       </div>
-      <div class="slider-row" data-page-node-id="AdE6VmkeH3oxDbla5Dvdcn">
-        <span data-page-node-id="Y5RGEpsKz2VeLFH1WI3q4T">双层</span>
-        <input type="range" id="chorus" min="0" max="100" value="18" data-page-node-id="AXV1LQBgANlEN7CB9sxzY3">
-        <b id="chorusV" data-page-node-id="uECYXasjUIT1EWBARCx9HW">18</b>
+      <div class="slider-row">
+        <span>双层</span>
+        <input type="range" id="chorus" min="0" max="100" value="18">
+        <b id="chorusV">18</b>
       </div>
-      <div class="slider-row" data-page-node-id="f1cXDZTQfISZ6rEJYeTIyp">
-        <span data-page-node-id="PCuWAEWWhjeyD3grAsee8N">回声</span>
-        <input type="range" id="echo" min="0" max="100" value="14" data-page-node-id="WB3nPNlFMVMD4T1UeYNGQ8">
-        <b id="echoV" data-page-node-id="iKpu3edSYGEOtHydjDFHBb">14</b>
+      <div class="slider-row">
+        <span>回声</span>
+        <input type="range" id="echo" min="0" max="100" value="14">
+        <b id="echoV">14</b>
       </div>
-      <div class="slider-row" data-page-node-id="eXusBg6QKE7w6TtcrBRbXy">
-        <span data-page-node-id="w7LbM4ggr7RmIByCOmQy3P">混响</span>
-        <input type="range" id="reverb" min="0" max="100" value="20" data-page-node-id="DPjnIoGeIiSlEObpjdWdbK">
-        <b id="reverbV" data-page-node-id="QCD7aRNspSFBjybEJ3bmk2">20</b>
+      <div class="slider-row">
+        <span>混响</span>
+        <input type="range" id="reverb" min="0" max="100" value="20">
+        <b id="reverbV">20</b>
       </div>
     </section>
   </aside>
 
-  <section class="stage" id="stage" data-page-node-id="jbNxXi9F1ksIeStbek0vdu">
-    <div class="dropzone" id="dropzone" data-page-node-id="old8Zuf2fJfe4EBvqTzyrZ">
-      <button class="rec-btn" id="recBtn" title="开始录音" data-page-node-id="l2xHwLeGOqjkqmTThEYJDq"><span data-page-node-id="NCDEUJ0dP92rpoOGAwo5J0">●</span></button>
-      <div class="hint" id="hint" data-page-node-id="eQIXDPFMTRuODf7MeN6ZtS">点红点开始录音 · 或把音频文件拖到这里</div>
-      <button class="ghost" id="pickBtn" data-page-node-id="x2gDMmCnwH41d3n7NAmcIw">选择音频文件</button>
-      <input type="file" id="fileInput" accept="audio/*" hidden data-page-node-id="eWB59trurhtDL2EVaAHA2f">
+  <section class="stage" id="stage">
+    <div class="dropzone" id="dropzone">
+      <button class="rec-btn" id="recBtn" title="开始录音"><span>●</span></button>
+      <div class="hint" id="hint">点红点开始录音 · 或把音频文件拖到这里</div>
+      <button class="ghost" id="pickBtn">选择音频文件</button>
+      <input type="file" id="fileInput" accept="audio/*" hidden>
     </div>
 
-    <div class="viz" id="viz" hidden data-page-node-id="SFBtSfHMFqIF8FKAMLvGPU">
-      <canvas id="wave" data-page-node-id="KHRVjvUxMOFPrNtI6ipEx5"></canvas>
-      <canvas id="pitch" data-page-node-id="HmCSWMfiH7JM3D4qjexPNv"></canvas>
-      <div class="notebar" data-page-node-id="DHC6umUd5YEYyep3Lp64fM">
-        <span data-page-node-id="R9yiJud7w8NSEVRYcQWYWT"><span class="k" data-page-node-id="pLq6GFMGyJRMlZHh4N8CcA">时长</span> <span class="v" id="durV" data-page-node-id="e1GgGwVRf8lwZ7rmL7EIdN">—</span></span>
-        <span data-page-node-id="vQ6vfqHACRhXPOIrGR0UHg"><span class="k" data-page-node-id="b4NMT1maYOUGs8e6L66y17">唱到</span> <span class="v" id="noteV" data-page-node-id="Yq4gZhNaCfyoafSYsnj4UE">—</span></span>
-        <span data-page-node-id="uPynGn0ChaevJ8IDXwxKBf"><span class="k" data-page-node-id="UUeW5ADaz1M5KKQROETUra">参考音阶</span> <span class="v" id="scaleV" data-page-node-id="EOgxNP93qcnWTuuqFcZsV4">—</span></span>
+    <div class="viz" id="viz" hidden>
+      <canvas id="wave"></canvas>
+      <canvas id="pitch"></canvas>
+      <div class="notebar">
+        <span><span class="k">时长</span> <span class="v" id="durV">—</span></span>
+        <span><span class="k">唱到</span> <span class="v" id="noteV">—</span></span>
+        <span><span class="k">参考音阶</span> <span class="v" id="scaleV">—</span></span>
       </div>
     </div>
 
-    <div class="transport" id="transport" hidden data-page-node-id="4R2vKS3b7JnWU8U1CBzrvi">
-      <button class="primary" id="playBtn" data-page-node-id="OEACKU4q0XpkXqO5HJdr4F">▶ 播放</button>
-      <div class="ab" id="ab" data-page-node-id="4jn51MDlU5JYQqJ2Sy4h0N">
-        <button data-ab="wet" class="on" data-page-node-id="JnjlElHAszbK34z0GP3jXl">挂电</button>
-        <button data-ab="dry" data-page-node-id="9Y2qgYggFECfRkChDvi756">原声</button>
+    <div class="transport" id="transport" hidden>
+      <button class="primary" id="playBtn">▶ 播放</button>
+      <div class="ab" id="ab">
+        <button data-ab="wet" class="on">挂电</button>
+        <button data-ab="dry">原声</button>
       </div>
-      <div class="toggles" data-page-node-id="bnYS4MlB76sWP8iycD3YzV">
-        <label data-page-node-id="d1boujtHbPQJZZewIE4v6P"><input type="checkbox" id="lowOpt" data-page-node-id="USY4QfzRbobjmd2hQyywDB"> 低音优化</label>
-        <button class="ghost" id="dlBtn" data-page-node-id="Q92ICSWPAm5J3LQr8CkCHn">⬇ 下载 WAV</button>
-        <button class="ghost" id="resetBtn" data-page-node-id="IIspItJn5CA1JB186m6yJ0">重来</button>
+      <div class="toggles">
+        <label><input type="checkbox" id="lowOpt"> 低音优化</label>
+        <button class="ghost" id="dlBtn">⬇ 下载 WAV</button>
+        <button class="ghost" id="resetBtn">重来</button>
       </div>
     </div>
 
-    <div class="overlay" id="overlay" hidden data-page-node-id="orzkEMc2SCysX8frUq4PYU">
-      <div style="text-align:center" data-page-node-id="MqONbrTPvTnfzEhsfQ1055">
-        <div class="spin" data-page-node-id="jpkkbCk2qOScbPE3lflfX7"></div>
-        <div id="overlayText" data-page-node-id="KzGzG68oaYo6YcdV8x6Pa6">处理中…</div>
+    <div class="overlay" id="overlay" hidden>
+      <div style="text-align:center">
+        <div class="spin"></div>
+        <div id="overlayText">处理中…</div>
       </div>
     </div>
   </section>
 </main>
 
-<div class="status" id="status" data-page-node-id="PQOSl9uEAlQj0mouEIA4hv"><span class="dot" data-page-node-id="cDszwhcbboFBPx9EOGNRw2"></span><span id="statusText" data-page-node-id="qdGopb1x3mRZnx6ZiPHYkQ">就绪</span></div>
-<div class="toast" id="toast" data-page-node-id="ptlezstLDSbRh7wXE9S8t9"></div>
+<div class="status" id="status"><span class="dot"></span><span id="statusText">就绪</span></div>
+<div class="toast" id="toast"></div>
 
 <script id="dsp-src" type="text/plain">/*
  * dsp.js —— 挂电（Auto-Tune）核心引擎
