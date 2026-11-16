@@ -1,0 +1,36 @@
+{
+  "name": "挂电 Studio · 说唱人声自动修音",
+  "short_name": "挂电",
+  "description": "说唱人声实时自动修音。YIN 基频检测 + 相位声码器变调，全程本地运算，声音不出设备。",
+  "lang": "zh-CN",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone"],
+  "background_color": "#07080a",
+  "theme_color": "#07080a",
+  "categories": ["music", "productivity", "utilities"],
+  "icons": [
+    {
+      "src": "assets/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "开始录音",
+      "short_name": "录音",
+      "description": "打开即进入录音",
+      "url": "./?rec=1",
+      "icons": [{ "src": "assets/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

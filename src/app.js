@@ -958,6 +958,19 @@
       status('就绪 · 点红点录音，或拖入音频文件');
     }
 
+    // ---------------------------------------------------- PWA
+    // 注册 Service Worker，让「安装为应用」生效（file:// 不支持，静默跳过）
+    if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+      navigator.serviceWorker.register('./sw.js').catch(() => {});
+    }
+    // 应用快捷方式「开始录音」：?rec=1 打开即触发录音按钮
+    if (new URLSearchParams(location.search).get('rec') === '1') {
+      setTimeout(() => {
+        const b = $('recBtn');
+        if (b && !b.classList.contains('recording')) b.click();
+      }, 500);
+    }
+
     // 调试/自动化测试入口
     window.__AT = { S, D, workletURL, renderOffline, setDry, getCtx, pcs, encodeWav, loadFile };
   }

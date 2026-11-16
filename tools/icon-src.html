@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>icon</title>
+<style>
+  html, body { margin: 0; padding: 0; background: #0a0b0f; overflow: hidden; }
+  svg { display: block; width: 100vw; height: 100vh; }
+</style>
+</head>
+<body>
+<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#171a24"/>
+      <stop offset="1" stop-color="#08090c"/>
+    </linearGradient>
+    <linearGradient id="red" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#a3122f"/>
+      <stop offset="0.55" stop-color="#ff2d55"/>
+      <stop offset="1" stop-color="#ff6b86"/>
+    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="26"/>
+    </filter>
+  </defs>
+
+  <rect width="512" height="512" rx="116" fill="url(#bg)"/>
+
+  <!-- 红色辉光 -->
+  <path d="M104 336 H168 V272 H232 V336 H296 V212 H360 V272 H408"
+        fill="none" stroke="#ff2d55" stroke-width="34"
+        stroke-linecap="round" stroke-linejoin="round"
+        opacity="0.55" filter="url(#glow)"/>
+
+  <!-- 音高台阶 -->
+  <path d="M104 336 H168 V272 H232 V336 H296 V212 H360 V272 H408"
+        fill="none" stroke="url(#red)" stroke-width="30"
+        stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- 左上角装饰点 -->
+  <circle cx="104" cy="152" r="13" fill="#ff2d55" opacity="0.9"/>
+</svg>
+</body>
+</html>
