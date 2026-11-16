@@ -31,6 +31,8 @@
     echo: 14,
     reverb: 20,
     lowOpt: false,
+    autoGain: true,
+    monitor: 70,
     ab: 'wet',
     dry: null,
     wet: null,
@@ -205,6 +207,24 @@
       S.lowOpt = e.target.checked;
       toast(S.lowOpt ? '低音优化已开：下次录音生效（延迟 +23ms）' : '低音优化已关');
     };
+
+    // 监听音量：只影响耳机里听到的自己，不参与录音和出片
+    const mon = $('monitor');
+    const applyMon = () => {
+      if (!live.gain) return;
+      const g = monitorGain(S.ag);
+      live.gain.gain.setTargetAtTime(g, 0, 0.02);
+    };
+    mon.addEventListener('input', () => {
+      S.monitor = +mon.value;
+      $('monitorV').textContent = mon.value;
+      applyMon();
+    });
+
+    $('autoGain').onchange = (e) => {
+      S.autoGain = e.target.checked;
+      toast(S.autoGain ? '自动增益开：麦克风偏小会自动补' : '自动增益关：保持麦克风原始电平');
+    };
   }
 
   // ---------------------------------------------------------- 音频上下文
@@ -363,9 +383,20 @@
     inGain: null,
     agTimer: 0,
     ag: 1,
+    peakDb: null,
   };
 
   function liveNfft() { return S.lowOpt ? 2048 : 1024; }
+
+  /**
+   * 耳机里听到的监听电平。
+   * 麦克风被自动补响之后，监听不能再跟着放大——否则耳机漏音进麦、
+   * 或者耳机自带直通监听时，会听到"自己的声音有两遍"。
+   */
+  function monitorGain(ag) {
+    const comp = 1 / Math.sqrt(Math.max(1, ag || 1));
+    return Math.max(0.1, Math.min(1.2, (S.monitor / 100) * comp));
+  }
 
   function updateLiveParams() {
     if (live.tune) {
@@ -418,7 +449,7 @@
     });
 
     const gain = c.createGain();
-    gain.gain.value = 0.9;
+    gain.gain.value = monitorGain(1);
     const analyser = c.createAnalyser();
     analyser.fftSize = 2048;
 
@@ -434,6 +465,12 @@
 
     const rawBuf = new Float32Array(raw.fftSize);
     let ag = 1;
+    const setAg = (v) => {
+      ag = v;
+      live.ag = ag;
+      inGain.gain.setTargetAtTime(ag, c.currentTime, 0.04);
+      gain.gain.setTargetAtTime(monitorGain(ag), c.currentTime, 0.06);
+    };
     const agTimer = setInterval(() => {
       if (!live.recording) return;
       raw.getFloatTimeDomainData(rawBuf);
@@ -442,11 +479,17 @@
         const v = rawBuf[i] < 0 ? -rawBuf[i] : rawBuf[i];
         if (v > pk) pk = v;
       }
+      // 原始输入峰值，用来判断到底是不是设备/麦克风的问题
+      if (pk > 1e-5) live.peakDb = 20 * Math.log10(pk);
+
+      if (!S.autoGain) {
+        if (ag !== 1) setAg(1);          // 关掉后立刻回到麦克风原始电平
+        return;
+      }
       if (pk < 1e-4) return;                       // 静音段不动
-      const want = Math.max(1, Math.min(16, 0.42 / pk));
-      ag = want < ag ? want : ag + (want - ag) * 0.3;  // 变响立即压，变轻慢慢补
-      inGain.gain.setTargetAtTime(ag, c.currentTime, 0.04);
-      live.ag = ag;
+      // 上限从 ×16 降到 ×8：补太多会把底噪一起抬上来，手机端尤其明显
+      const want = Math.max(1, Math.min(8, 0.42 / pk));
+      setAg(want < ag ? want : ag + (want - ag) * 0.3);  // 变响立即压，变轻慢慢补
     }, 120);
 
     const sink = c.createGain();
@@ -523,6 +566,7 @@
     try { live.gain && live.gain.disconnect(); } catch (e) {}
     live.stream = live.src = live.tune = live.rec = live.gain = live.analyser = live.inGain = null;
     live.chunks = [];
+    live.peakDb = null;
     $('recBtn').classList.remove('recording');
     $('hint').textContent = '点红点开始录音 · 或把音频文件拖到这里';
     $('wave').getContext('2d').clearRect(0, 0, $('wave').width, $('wave').height);
@@ -552,9 +596,14 @@
     g.fillStyle = '#858b96';
     g.font = '12px ui-monospace, monospace';
     g.fillText(live.note, 12, 20);
-    if (live.ag > 1.05) {
-      g.fillStyle = '#ffb020';
-      g.fillText('输入增益 ×' + live.ag.toFixed(1), 12, h - 10);
+
+    // 左下角：原始输入电平 + 自动增益倍数（判断是不是麦克风本身太小）
+    const bits = [];
+    if (typeof live.peakDb === 'number') bits.push('输入 ' + live.peakDb.toFixed(0) + 'dB');
+    if (live.ag > 1.05) bits.push('增益 ×' + live.ag.toFixed(1));
+    if (bits.length) {
+      g.fillStyle = live.ag > 1.05 ? '#ffb020' : '#5c636e';
+      g.fillText(bits.join('  '), 12, h - 10);
     }
 
     live.raf = requestAnimationFrame(drawLive);

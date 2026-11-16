@@ -127,6 +127,24 @@ async function main() {
   check('DSP 已载入主线程', ui.dsp === true);
   check('测试钩子可用', ui.hook === true);
 
+  const ui2 = await evaluate(`(() => {
+    const mon = document.getElementById('monitor');
+    const ag = document.getElementById('autoGain');
+    const S = window.__AT.S;
+    ag.checked = false; ag.dispatchEvent(new Event('change'));
+    const off = S.autoGain;
+    ag.checked = true; ag.dispatchEvent(new Event('change'));
+    mon.value = 35; mon.dispatchEvent(new Event('input'));
+    return {
+      hasMon: !!mon, hasAg: !!ag, off, on: S.autoGain, mon: S.monitor,
+      label: document.getElementById('monitorV').textContent,
+    };
+  })()`);
+  check('监听滑杆存在并联动', ui2.hasMon && ui2.mon === 35 && ui2.label === '35',
+    `monitor=${ui2.mon} label=${ui2.label}`);
+  check('自动增益开关生效', ui2.hasAg && ui2.off === false && ui2.on === true,
+    `off→${ui2.off} on→${ui2.on}`);
+
   console.log('\n== 2. 离线渲染（真实 AudioWorklet）==');
   const r1 = await evaluate(`(async () => {
     const D = window.ATDSP, S = window.__AT.S;

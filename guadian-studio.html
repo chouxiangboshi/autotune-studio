@@ -371,6 +371,17 @@ canvas { width: 100%; display: block; border-radius: 8px; background: #0a0c10; }
   display: flex; align-items: center; gap: 6px;
   color: var(--muted); font-size: 12.5px; cursor: pointer; user-select: none;
 }
+.check-row {
+  display: flex; align-items: center; gap: 7px;
+  color: var(--muted); font-size: 12.5px; cursor: pointer; user-select: none;
+  margin-top: 10px;
+}
+.tip {
+  margin-top: 9px;
+  color: #6b7280;
+  font-size: 11.5px;
+  line-height: 1.6;
+}
 input[type=checkbox] { accent-color: var(--accent); cursor: pointer; }
 
 /* status */
@@ -488,6 +499,17 @@ input[type=checkbox] { accent-color: var(--accent); cursor: pointer; }
         <input type="range" id="reverb" min="0" max="100" value="20">
         <b id="reverbV">20</b>
       </div>
+    </section>
+
+    <section>
+      <h3>录音</h3>
+      <div class="slider-row">
+        <span>监听</span>
+        <input type="range" id="monitor" min="0" max="100" value="70">
+        <b id="monitorV">70</b>
+      </div>
+      <label class="check-row"><input type="checkbox" id="autoGain" checked> 自动增益</label>
+      <p class="tip">耳机里听到自己的声音有重影/回声，先把监听拉到 0；手机录音发毛，把自动增益关掉。</p>
     </section>
   </aside>
 
@@ -1090,6 +1112,8 @@ input[type=checkbox] { accent-color: var(--accent); cursor: pointer; }
     echo: 14,
     reverb: 20,
     lowOpt: false,
+    autoGain: true,
+    monitor: 70,
     ab: 'wet',
     dry: null,
     wet: null,
@@ -1264,6 +1288,24 @@ input[type=checkbox] { accent-color: var(--accent); cursor: pointer; }
       S.lowOpt = e.target.checked;
       toast(S.lowOpt ? '低音优化已开：下次录音生效（延迟 +23ms）' : '低音优化已关');
     };
+
+    // 监听音量：只影响耳机里听到的自己，不参与录音和出片
+    const mon = $('monitor');
+    const applyMon = () => {
+      if (!live.gain) return;
+      const g = monitorGain(S.ag);
+      live.gain.gain.setTargetAtTime(g, 0, 0.02);
+    };
+    mon.addEventListener('input', () => {
+      S.monitor = +mon.value;
+      $('monitorV').textContent = mon.value;
+      applyMon();
+    });
+
+    $('autoGain').onchange = (e) => {
+      S.autoGain = e.target.checked;
+      toast(S.autoGain ? '自动增益开：麦克风偏小会自动补' : '自动增益关：保持麦克风原始电平');
+    };
   }
 
   // ---------------------------------------------------------- 音频上下文
@@ -1422,9 +1464,20 @@ input[type=checkbox] { accent-color: var(--accent); cursor: pointer; }
     inGain: null,
     agTimer: 0,
     ag: 1,
+    peakDb: null,
   };
 
   function liveNfft() { return S.lowOpt ? 2048 : 1024; }
+
+  /**
+   * 耳机里听到的监听电平。
+   * 麦克风被自动补响之后，监听不能再跟着放大——否则耳机漏音进麦、
+   * 或者耳机自带直通监听时，会听到"自己的声音有两遍"。
+   */
+  function monitorGain(ag) {
+    const comp = 1 / Math.sqrt(Math.max(1, ag || 1));
+    return Math.max(0.1, Math.min(1.2, (S.monitor / 100) * comp));
+  }
 
   function updateLiveParams() {
     if (live.tune) {
@@ -1477,7 +1530,7 @@ input[type=checkbox] { accent-color: var(--accent); cursor: pointer; }
     });
 
     const gain = c.createGain();
-    gain.gain.value = 0.9;
+    gain.gain.value = monitorGain(1);
     const analyser = c.createAnalyser();
     analyser.fftSize = 2048;
 
@@ -1493,6 +1546,12 @@ input[type=checkbox] { accent-color: var(--accent); cursor: pointer; }
 
     const rawBuf = new Float32Array(raw.fftSize);
     let ag = 1;
+    const setAg = (v) => {
+      ag = v;
+      live.ag = ag;
+      inGain.gain.setTargetAtTime(ag, c.currentTime, 0.04);
+      gain.gain.setTargetAtTime(monitorGain(ag), c.currentTime, 0.06);
+    };
     const agTimer = setInterval(() => {
       if (!live.recording) return;
       raw.getFloatTimeDomainData(rawBuf);
@@ -1501,11 +1560,17 @@ input[type=checkbox] { accent-color: var(--accent); cursor: pointer; }
         const v = rawBuf[i] < 0 ? -rawBuf[i] : rawBuf[i];
         if (v > pk) pk = v;
       }
+      // 原始输入峰值，用来判断到底是不是设备/麦克风的问题
+      if (pk > 1e-5) live.peakDb = 20 * Math.log10(pk);
+
+      if (!S.autoGain) {
+        if (ag !== 1) setAg(1);          // 关掉后立刻回到麦克风原始电平
+        return;
+      }
       if (pk < 1e-4) return;                       // 静音段不动
-      const want = Math.max(1, Math.min(16, 0.42 / pk));
-      ag = want < ag ? want : ag + (want - ag) * 0.3;  // 变响立即压，变轻慢慢补
-      inGain.gain.setTargetAtTime(ag, c.currentTime, 0.04);
-      live.ag = ag;
+      // 上限从 ×16 降到 ×8：补太多会把底噪一起抬上来，手机端尤其明显
+      const want = Math.max(1, Math.min(8, 0.42 / pk));
+      setAg(want < ag ? want : ag + (want - ag) * 0.3);  // 变响立即压，变轻慢慢补
     }, 120);
 
     const sink = c.createGain();
@@ -1582,6 +1647,7 @@ input[type=checkbox] { accent-color: var(--accent); cursor: pointer; }
     try { live.gain && live.gain.disconnect(); } catch (e) {}
     live.stream = live.src = live.tune = live.rec = live.gain = live.analyser = live.inGain = null;
     live.chunks = [];
+    live.peakDb = null;
     $('recBtn').classList.remove('recording');
     $('hint').textContent = '点红点开始录音 · 或把音频文件拖到这里';
     $('wave').getContext('2d').clearRect(0, 0, $('wave').width, $('wave').height);
@@ -1611,9 +1677,14 @@ input[type=checkbox] { accent-color: var(--accent); cursor: pointer; }
     g.fillStyle = '#858b96';
     g.font = '12px ui-monospace, monospace';
     g.fillText(live.note, 12, 20);
-    if (live.ag > 1.05) {
-      g.fillStyle = '#ffb020';
-      g.fillText('输入增益 ×' + live.ag.toFixed(1), 12, h - 10);
+
+    // 左下角：原始输入电平 + 自动增益倍数（判断是不是麦克风本身太小）
+    const bits = [];
+    if (typeof live.peakDb === 'number') bits.push('输入 ' + live.peakDb.toFixed(0) + 'dB');
+    if (live.ag > 1.05) bits.push('增益 ×' + live.ag.toFixed(1));
+    if (bits.length) {
+      g.fillStyle = live.ag > 1.05 ? '#ffb020' : '#5c636e';
+      g.fillText(bits.join('  '), 12, h - 10);
     }
 
     live.raf = requestAnimationFrame(drawLive);
