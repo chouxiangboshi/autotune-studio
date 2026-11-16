@@ -23,5 +23,8 @@ fs.writeFileSync(out, html, 'utf8');
 // 副本：index.html，给 GitHub Pages 用根路径直接访问
 fs.writeFileSync(path.join(root, 'index.html'), html, 'utf8');
 
+// 副本：中文名，方便本地双击（.gitignore 已排除，避免预览器注入的属性入库）
+fs.writeFileSync(path.join(root, '挂电Studio.html'), html, 'utf8');
+
 const kb = (Buffer.byteLength(html, 'utf8') / 1024).toFixed(1);
-console.log(`built -> ${path.basename(out)} + index.html  (${kb} KB)`);
+console.log(`built -> ${path.basename(out)} + index.html + 挂电Studio.html  (${kb} KB)`);

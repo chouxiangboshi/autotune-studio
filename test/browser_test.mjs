@@ -7,7 +7,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 const EDGE = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
-const PAGE = 'file:///D:/workbuddy-workspace/autotune/%E6%8C%82%E7%94%B5Studio.html';
+const PAGE = 'file:///D:/workbuddy-workspace/autotune/guadian-studio.html';
 const PORT = 9333;
 
 const profile = mkdtempSync(join(tmpdir(), 'at-edge-'));
@@ -90,7 +90,13 @@ async function main() {
     } else if (m.method === 'Runtime.exceptionThrown') {
       errors.push(m.params.exceptionDetails.exception?.description || m.params.exceptionDetails.text);
     } else if (m.method === 'Log.entryAdded') {
-      if (m.params.entry.level === 'error') errors.push(m.params.entry.text);
+      // file:// 下 manifest 必然 CORS 失败，这不是页面缺陷（PWA 只在 https 生效）
+      const t = m.params.entry.text || '';
+      const u = m.params.entry.url || '';
+      const noisy = /manifest\.json/.test(t) || /manifest\.json/.test(u) || /Cross origin requests/.test(t);
+      if (m.params.entry.level === 'error' && !noisy) {
+        errors.push(t);
+      }
     }
   };
 
@@ -270,6 +276,30 @@ async function main() {
   const c2 = 1200 * Math.log2(r5.f0 / 220);
   check('文件路径同样修到 A3', Math.abs(c2) < 30, `${r5.f0?.toFixed(1)}Hz 偏差 ${c2.toFixed(1)}音分`);
   console.log('   状态栏：' + r5.status);
+
+  console.log('\n== 6. 电平标准化（桌面麦偏小声）==');
+  const r6 = await evaluate(`(async () => {
+    const S = window.__AT.S, sr = 44100, n = Math.floor(sr * 1.5);
+    // 用干净的后级参数，只考察电平标准化本身
+    S.amount = 100; S.retune = 0; S.drive = 10; S.chorus = 15; S.echo = 10; S.reverb = 15;
+    const quiet = new Float32Array(n);
+    for (let i = 0; i < n; i++) quiet[i] = 0.03 * Math.sin(2 * Math.PI * 220 * i / sr);
+    await window.__AT.setDry(quiet, 'quiet');
+    let qp = 0;
+    for (let i = 0; i < S.wet.length; i++) qp = Math.max(qp, Math.abs(S.wet[i]));
+    const qg = S.wetGain;
+
+    const hot = new Float32Array(n);
+    for (let i = 0; i < n; i++) hot[i] = 0.92 * Math.sin(2 * Math.PI * 220 * i / sr);
+    await window.__AT.setDry(hot, 'hot');
+    let hp = 0;
+    for (let i = 0; i < S.wet.length; i++) hp = Math.max(hp, Math.abs(S.wet[i]));
+    return { qp, qg, hp, hg: S.wetGain };
+  })()`);
+  check('小声素材被补到接近 -1dBFS', r6.qp > 0.8 && r6.qp <= 0.95, `peak=${r6.qp.toFixed(3)}`);
+  check('大声素材被压到 -1dBFS', r6.hp > 0.8 && r6.hp <= 0.95, `peak=${r6.hp.toFixed(3)} gain=${r6.hg.toFixed(2)}×`);
+  check('两端出片电平一致', Math.abs(r6.qp - r6.hp) < 0.03, `差 ${(Math.abs(r6.qp - r6.hp) * 100).toFixed(1)}%`);
+  check('小音量判为需要补偿', r6.qg > 1.5, `gain=${r6.qg.toFixed(2)}×`);
 
   if (errors.length) {
     console.log('\n浏览器错误：');

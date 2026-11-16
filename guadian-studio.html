@@ -1066,6 +1066,7 @@ input[type=checkbox] { accent-color: var(--accent); cursor: pointer; }
     ab: 'wet',
     dry: null,
     wet: null,
+    wetGain: 1,
     sr: 44100,
     preset: 'tpain',
   };
@@ -1391,6 +1392,9 @@ input[type=checkbox] { accent-color: var(--accent); cursor: pointer; }
     raf: 0,
     doneResolve: null,
     note: '—',
+    inGain: null,
+    agTimer: 0,
+    ag: 1,
   };
 
   function liveNfft() { return S.lowOpt ? 2048 : 1024; }
@@ -1441,13 +1445,38 @@ input[type=checkbox] { accent-color: var(--accent); cursor: pointer; }
     const analyser = c.createAnalyser();
     analyser.fftSize = 2048;
 
-    src.connect(rec);
+    // 自动输入增益：桌面麦克风普遍比手机低 10~25dB，先量再补，两端听感才一致
+    const raw = c.createAnalyser();
+    raw.fftSize = 1024;
+    const inGain = c.createGain();
+    inGain.gain.value = 1;
+    src.connect(raw);
+    src.connect(inGain);
+    inGain.connect(rec);
+    inGain.connect(tune);
+
+    const rawBuf = new Float32Array(raw.fftSize);
+    let ag = 1;
+    const agTimer = setInterval(() => {
+      if (!live.recording) return;
+      raw.getFloatTimeDomainData(rawBuf);
+      let pk = 0;
+      for (let i = 0; i < rawBuf.length; i++) {
+        const v = rawBuf[i] < 0 ? -rawBuf[i] : rawBuf[i];
+        if (v > pk) pk = v;
+      }
+      if (pk < 1e-4) return;                       // 静音段不动
+      const want = Math.max(1, Math.min(16, 0.42 / pk));
+      ag = want < ag ? want : ag + (want - ag) * 0.3;  // 变响立即压，变轻慢慢补
+      inGain.gain.setTargetAtTime(ag, c.currentTime, 0.04);
+      live.ag = ag;
+    }, 120);
+
     const sink = c.createGain();
     sink.gain.value = 0;
     rec.connect(sink);
     sink.connect(c.destination);
 
-    src.connect(tune);
     tune.connect(gain);
     gain.connect(analyser);
     gain.connect(c.destination);
@@ -1477,6 +1506,9 @@ input[type=checkbox] { accent-color: var(--accent); cursor: pointer; }
     live.rec = rec;
     live.gain = gain;
     live.analyser = analyser;
+    live.inGain = inGain;
+    live.agTimer = agTimer;
+    live.ag = 1;
     live.chunks = [];
     live.recording = true;
 
@@ -1504,12 +1536,15 @@ input[type=checkbox] { accent-color: var(--accent); cursor: pointer; }
   }
 
   function cleanupLive() {
+    clearInterval(live.agTimer);
+    live.agTimer = 0;
     try { live.stream && live.stream.getTracks().forEach((t) => t.stop()); } catch (e) {}
     try { live.src && live.src.disconnect(); } catch (e) {}
+    try { live.inGain && live.inGain.disconnect(); } catch (e) {}
     try { live.tune && live.tune.disconnect(); } catch (e) {}
     try { live.rec && live.rec.disconnect(); } catch (e) {}
     try { live.gain && live.gain.disconnect(); } catch (e) {}
-    live.stream = live.src = live.tune = live.rec = live.gain = live.analyser = null;
+    live.stream = live.src = live.tune = live.rec = live.gain = live.analyser = live.inGain = null;
     live.chunks = [];
     $('recBtn').classList.remove('recording');
     $('hint').textContent = '点红点开始录音 · 或把音频文件拖到这里';
@@ -1540,6 +1575,10 @@ input[type=checkbox] { accent-color: var(--accent); cursor: pointer; }
     g.fillStyle = '#858b96';
     g.font = '12px ui-monospace, monospace';
     g.fillText(live.note, 12, 20);
+    if (live.ag > 1.05) {
+      g.fillStyle = '#ffb020';
+      g.fillText('输入增益 ×' + live.ag.toFixed(1), 12, h - 10);
+    }
 
     live.raf = requestAnimationFrame(drawLive);
   }
@@ -1695,6 +1734,26 @@ input[type=checkbox] { accent-color: var(--accent); cursor: pointer; }
   }
 
   // ---------------------------------------------------------- 离线处理
+  /**
+   * 把整段素材的电平统一到目标峰值。
+   * 手机麦克风通常很烫（peak 0.6~0.9），桌面头戴麦常常只有 0.02~0.1，
+   * 不做这一步同一套参数在两端出来能差 20dB。
+   */
+  function normalize(data, target = 0.89, maxGain = 12) {
+    let pk = 0;
+    for (let i = 0; i < data.length; i++) {
+      const v = data[i] < 0 ? -data[i] : data[i];
+      if (v > pk) pk = v;
+    }
+    if (pk < 1e-6) return { data, gain: 1 };
+    let g = target / pk;
+    g = Math.max(1 / 4, Math.min(maxGain, g));
+    if (Math.abs(g - 1) < 0.06) return { data, gain: 1 };
+    const out = new Float32Array(data.length);
+    for (let i = 0; i < data.length; i++) out[i] = data[i] * g;
+    return { data: out, gain: g };
+  }
+
   async function renderOffline(dry, sr) {
     const nFft = 2048, hop = 256;
     const tail = Math.floor(sr * 1.4);
@@ -1739,7 +1798,9 @@ input[type=checkbox] { accent-color: var(--accent); cursor: pointer; }
       const wet = await renderOffline(S.dry, S.sr);
       if (token !== renderToken) return;
 
-      S.wet = wet;
+      const norm = normalize(wet);
+      S.wet = norm.data;
+      S.wetGain = norm.gain;
       const el = performance.now() - t0;
       overlay(false);
 
@@ -1767,7 +1828,10 @@ input[type=checkbox] { accent-color: var(--accent); cursor: pointer; }
       $('scaleV').textContent =
         D.NOTE_NAMES[((S.key % 12) + 12) % 12] + ' ' + (SCALE_CN[S.scale] || S.scale).split('（')[0];
 
-      status(`完成 · ${(dur).toFixed(1)}s 音频 · 耗时 ${el.toFixed(0)}ms · ${S.sr / 1000}kHz`);
+      status(`完成 · ${(dur).toFixed(1)}s 音频 · 耗时 ${el.toFixed(0)}ms · ${S.sr / 1000}kHz` +
+        (Math.abs(norm.gain - 1) > 0.06
+          ? ` · 音量${norm.gain > 1 ? '补' : '压'} ${(20 * Math.log10(norm.gain)).toFixed(1)}dB`
+          : ''));
       stopPlayback();
     } catch (e) {
       if (token === renderToken) {
@@ -1797,6 +1861,7 @@ input[type=checkbox] { accent-color: var(--accent); cursor: pointer; }
 
   // ---------------------------------------------------------- 播放
   let playNode = null;
+  let playGain = null;
   let playing = false;
 
   function stopPlayback() {
@@ -1804,6 +1869,10 @@ input[type=checkbox] { accent-color: var(--accent); cursor: pointer; }
       try { playNode.onended = null; playNode.stop(); } catch (e) {}
       try { playNode.disconnect(); } catch (e) {}
       playNode = null;
+    }
+    if (playGain) {
+      try { playGain.disconnect(); } catch (e) {}
+      playGain = null;
     }
     playing = false;
     $('playBtn').textContent = '▶ 播放';
@@ -1817,12 +1886,27 @@ input[type=checkbox] { accent-color: var(--accent); cursor: pointer; }
     const buf = c.createBuffer(1, data.length, S.sr);
     buf.copyToChannel(data, 0);
 
+    // 原声没做标准化，用挂电版的补偿量对齐，A/B 切换不会突然变小
+    let gval = 1;
+    if (S.ab !== 'wet' && S.wetGain > 1) {
+      let pk = 0;
+      for (let i = 0; i < data.length; i++) {
+        const v = data[i] < 0 ? -data[i] : data[i];
+        if (v > pk) pk = v;
+      }
+      if (pk > 1e-6) gval = Math.max(1, Math.min(S.wetGain, 0.95 / pk));
+    }
+    const gn = c.createGain();
+    gn.gain.value = gval;
+
     const node = c.createBufferSource();
     node.buffer = buf;
-    node.connect(c.destination);
+    node.connect(gn);
+    gn.connect(c.destination);
     node.onended = () => { playing = false; $('playBtn').textContent = '▶ 播放'; };
     node.start(0);
     playNode = node;
+    playGain = gn;
     playing = true;
     $('playBtn').textContent = '■ 停止';
 
@@ -1935,7 +2019,7 @@ input[type=checkbox] { accent-color: var(--accent); cursor: pointer; }
 
     $('resetBtn').onclick = () => {
       stopPlayback();
-      S.dry = null; S.wet = null;
+      S.dry = null; S.wet = null; S.wetGain = 1;
       $('dropzone').hidden = false;
       $('viz').hidden = true;
       $('transport').hidden = true;

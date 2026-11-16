@@ -27,3 +27,6 @@ desktop.ini
 # 推送临时文件
 .repo.json
 .resp.json
+
+# 中文名副本（本地双击用；被预览器打开时会被注入属性，故不入库）
+挂电Studio.html
